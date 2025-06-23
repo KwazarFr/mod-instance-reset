@@ -1,5 +1,6 @@
 #include "instance_reset.h"
 
+#define GOSSIP_ACTION_CONFIRM_RESET (GOSSIP_ACTION_INFO_DEF + 2)
 /*
 * This method is used to override the npc_text
 * Without resorting to the database, since it is a module.
@@ -72,20 +73,20 @@ bool InstanceReset::OnGossipHello(Player* player, Creature* creature)
     {
         case LOCALE_enUS:
         case LOCALE_koKR:
-        case LOCALE_frFR:
+        case LOCALE_esES:
+        case LOCALE_esMX:
         case LOCALE_deDE:
         case LOCALE_zhCN:
         case LOCALE_zhTW:
         {
-            gossipText = "I would like to remove my instance saves.";
-            message = "Greetings $n. This is an npc that allows you to reset instance ids, allowing you to re-enter, without the need to wait for the reset time to expire. It was developed by the AzerothCore community.";
+            gossipText = "I seek to sever my ties with past instances.";
+            message = "Greetings, $n. By the will of the ancients and the wisdom of DragonWar’s scholars, I can free your spirit from the chains of your former adventures. Thus, you may once again tread those grounds without waiting for time to take its course.";
             break;
         }
-        case LOCALE_esES:
-        case LOCALE_esMX:
+        case LOCALE_frFR:
         {
-            gossipText = "Me gustaría reiniciar mis ids de instancias.";
-            message = "Saludos $n. Este es un npc que te permite reiniciar los ids de las instancias, permitiéndote volver a entrar, sin la necesidad de esperar a que se cumpla el tiempo para el reinicio. Fue desarrollado por la comunidad de AzerothCore.";
+            gossipText = "Je cherche à rompre mes liens avec les instances passées.";
+            message = "Salutations, $n. Par la volonté des anciens et le savoir des érudits de DragonWar, je peux libérer ton esprit des chaînes de tes anciennes aventures. Ainsi, tu pourras à nouveau fouler ces lieux sans attendre que le temps fasse son œuvre.";
             break;
         }
         case LOCALE_ruRU:
@@ -152,6 +153,28 @@ bool InstanceReset::OnGossipSelect(Player* player, Creature* creature, uint32 /*
 
     if (action == GOSSIP_ACTION_INFO_DEF + 1)
     {
+        std::string confirmText = "";
+
+        switch (player->GetSession()->GetSessionDbLocaleIndex())
+        {
+            case LOCALE_frFR:
+                confirmText = "Etes vous sûr de vouloir réinitialiser toutes vos instances ?";
+                break;
+            case LOCALE_ruRU:
+                confirmText = "Вы уверены, что хотите сбросить все подземелья?";
+                break;
+            default:
+                confirmText = "Are you sure you want to reset all your instances?";
+                break;
+        }
+
+        AddGossipItemFor(player, GOSSIP_ICON_CHAT, confirmText, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_CONFIRM_RESET);
+        SendGossipMenuFor(player, DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
+        return true;
+    }
+
+    if (action == GOSSIP_ACTION_CONFIRM_RESET)
+    {
         if (!(sConfigMgr->GetOption<bool>("instanceReset.NormalModeOnly", true)))
             diff = MAX_DIFFICULTY;
 
@@ -174,28 +197,14 @@ bool InstanceReset::OnGossipSelect(Player* player, Creature* creature, uint32 /*
 
         switch (player->GetSession()->GetSessionDbLocaleIndex())
         {
-            case LOCALE_enUS:
-            case LOCALE_koKR:
             case LOCALE_frFR:
-            case LOCALE_deDE:
-            case LOCALE_zhCN:
-            case LOCALE_zhTW:
-            {
-                creatureWhisper = "Your instances have been reset.";
+                creatureWhisper = "Les liens avec vos anciennes instances ont été brisés. Vous êtes libre d’y retourner.";
                 break;
-            }
-            case LOCALE_esES:
-            case LOCALE_esMX:
-            {
-                creatureWhisper = "Sus instancias han sido restablecidas.";
-                break;
-            }
             case LOCALE_ruRU:
-            {
                 creatureWhisper = "Ваши подземелья перезагружены.";
                 break;
-            }
             default:
+                creatureWhisper = "Your ties to past instances have been severed. You are free to return.";
                 break;
         }
 
@@ -203,27 +212,16 @@ bool InstanceReset::OnGossipSelect(Player* player, Creature* creature, uint32 /*
 
         switch (transactionType)
         {
-            case 0: break;
-
             case 1:
-            {
                 player->DestroyItemCount(token, count, true);
                 break;
-            }
-
             case 2:
-            {
                 player->ModifyMoney(-money);
                 break;
-            }
-
             case 3:
-            {
                 player->DestroyItemCount(token, count, true);
                 player->ModifyMoney(-money);
                 break;
-            }
-
             default:
                 break;
         }
@@ -233,6 +231,7 @@ bool InstanceReset::OnGossipSelect(Player* player, Creature* creature, uint32 /*
 
     return true;
 }
+
 
 void InstanceResetWorldConfig::OnBeforeConfigLoad(bool /*reload*/)
 {
