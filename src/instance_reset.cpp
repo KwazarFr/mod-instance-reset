@@ -6,7 +6,7 @@
 * Without resorting to the database, since it is a module.
 * And we want to avoid adding information that is not blizzlike.
 */
-void GossipSetText(Player* player, std::string message, uint32 textID)
+static void GossipSetText(Player* player, std::string message, uint32 textID)
 {
     WorldPacket data(SMSG_NPC_TEXT_UPDATE, 100);
     data << textID;
