@@ -9,7 +9,8 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 
-void GossipSetText(Player* player, std::string message, uint32 textID);
+//void GossipSetText(Player* player, std::string message, uint32 textID);
+//Déclaration désactivée car la fonction est définie en static dans instance_reset.cpp
 
 bool enable = true;
 uint8 transactionType = 0;
